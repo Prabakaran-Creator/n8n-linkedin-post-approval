@@ -1,0 +1,358 @@
+{
+  "name": "LinkedIn Post Approval",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "LinkedIn Post Generator",
+        "formDescription": "Enter a topic and I will write a LinkedIn post for you",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Topic",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -864,
+        -64
+      ],
+      "id": "253fb57d-90f2-4e3d-b212-ef58c90d62b7",
+      "name": "On form submission",
+      "webhookId": "8cac74ff-ccc7-4911-99e3-5f54b1992c17"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are ghostwriting a LinkedIn post for a senior welding inspector and senior quality specialist and QMS Lead Auditor in welding, NDT and painting/coating, with experience in marine, offshore, oil and gas and manufacturing.\n\nTopic: {{ $json.Topic }}\n\nRules:\n- Write in first person, in a confident, practical, field-experienced voice.\n- Line one must be a strong hook that a fabricator, QA/QC engineer or inspector would stop scrolling for.\n- 120-150 words, short paragraphs, plain language.\n- Use real inspection and quality thinking (defects, procedures, documentation, acceptance criteria, safety, cost of rework). Mention a standard or code only if it clearly applies to the topic. Never invent statistics, project names or client names.\n- End with one call to action, such as a question that invites other professionals to share their experience.\n- Maximum 3 relevant hashtags.\n- Return the post only, with no title or explanation.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -672,
+        -64
+      ],
+      "id": "104fb7b8-7aca-4621-8845-d16d75daf247",
+      "name": "Writer Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -672,
+        160
+      ],
+      "id": "16acfdac-817b-4c6f-b84e-fd99df4deee9",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "ZCSEkNb4ySG3bmL9",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a senior reviewer of LinkedIn posts for a senior welding inspector and quality specialist and QMS Lead Auditorin welding, NDT and painting/coating, working in marine, offshore, oil and gas and manufacturing.\n\nReview the draft below against these standards:\n1. Hook: does line one make an inspector, QA/QC engineer or fabricator stop scrolling?\n2. Technical credibility: no vague or incorrect claims, no invented statistics, project names or client names. Any standard or code mentioned must clearly apply to the topic.\n3. Clarity: plain language, short paragraphs, easy to read on a phone.\n4. Call to action: exactly one, inviting other professionals to share experience.\n5. Format: 120-150 words, maximum 3 relevant hashtags.\n\nScore the draft out of 10 on hook, clarity and call to action. Then rewrite the weakest part so the post meets all the standards above and still sounds like a confident, experienced professional.\n\nReturn the final post only, with no scores, notes or explanation.\n\nDraft:\n{{ $json.output }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -352,
+        -64
+      ],
+      "id": "af58cd8f-2315-46c8-bb15-20b4b20ba859",
+      "name": "Reviewer Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        160
+      ],
+      "id": "ed0d74bd-e52a-446e-88d4-23502164076b",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "ZCSEkNb4ySG3bmL9",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "prabadesh@gmail.com",
+        "subject": "LinkedIn Post Approval Needed",
+        "message": "=Please review this LinkedIn post and click Approve or Reject.\n\n{{ $json.output }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {
+          "limitWaitTime": {
+            "values": {
+              "resumeUnit": "days"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -16,
+        -64
+      ],
+      "id": "f81d96ff-2d70-4e46-ae2f-6602304ff47c",
+      "name": "Send for Approval",
+      "webhookId": "f8a080b5-9ea9-493a-9052-c62269b09c22",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SgtfsCum6WUb2DgR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "27884e70-ab9f-4a34-ba85-5053662d75bc",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        208,
+        -64
+      ],
+      "id": "332d8815-6926-4126-9bb8-1e16254840ac",
+      "name": "Approved?"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1c6kVILohnjbE4SZoQG66wYQdYAD14_JsDF5NrdA5TjE",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Post Approvals",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1c6kVILohnjbE4SZoQG66wYQdYAD14_JsDF5NrdA5TjE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1c6kVILohnjbE4SZoQG66wYQdYAD14_JsDF5NrdA5TjE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.toFormat('yyyy-MM-dd') }}",
+            "Topic": "={{ $('On form submission').item.json.Topic }}",
+            "Final Post": "={{ $('Reviewer Agent').item.json.output }}",
+            "Status": "=Approved (plain text, no expression needed)"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Topic",
+              "displayName": "Topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Final Post",
+              "displayName": "Final Post",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        528,
+        -80
+      ],
+      "id": "3677d815-befa-4282-8f9c-d29b4fd77f4b",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "S5WDjOjVKi83xUQd",
+          "name": "Prabakaran Dhesamuthu"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Writer Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Writer Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Writer Agent": {
+      "main": [
+        [
+          {
+            "node": "Reviewer Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Reviewer Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reviewer Agent": {
+      "main": [
+        [
+          {
+            "node": "Send for Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send for Approval": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "7cfc90cd-dd15-4605-af2d-710d66540156",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f9561fedbb53454a50678bdb63d20087b01487749cc08014df884681a342aca0"
+  },
+  "nodeGroups": [],
+  "id": "Cpxtfgky9uGLJycT",
+  "tags": []
+}
